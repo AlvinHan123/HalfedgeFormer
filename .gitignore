@@ -1,9 +1,1 @@
-.idea/*
-*.pyc
-*.m~
 
-# data files
-*.obj
-checkpoints
-datasets
-runs
