@@ -25,9 +25,6 @@ if __name__ == '__main__':
     command += get_cuda_settings_string()
     print("Command:", command)
 
-    # print(type(command))
-    # exit()
-
     if combined_settings["--number_of_runs"] is None and combined_settings["--number_of_runs"].isnumeric():
         raise Exception("No number of runs (--number_of_runs) specified in settings file.")
     number_of_runs = int(combined_settings["--number_of_runs"])

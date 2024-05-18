@@ -37,14 +37,15 @@ class HalfEdgeMeshTransformer(nn.Module):
 
         features_of_neighborhoods = features_of_neighborhoods.permute(2, 0, 1, 3)  # Adjust dimensions for Transformer
         sequence_length, batch_size, num_half_edges, projected_dim = features_of_neighborhoods.shape
-        features_of_neighborhoods = features_of_neighborhoods.reshape(sequence_length * batch_size, num_half_edges,
-                                                                      projected_dim)
+
+        features_of_neighborhoods = features_of_neighborhoods.contiguous().view(sequence_length * batch_size,
+                                                                                num_half_edges, projected_dim)
 
         print(f"features_of_neighborhoods shape after permute and reshape: {features_of_neighborhoods.shape}")
 
         transformed_features = self.transformer_encoder(features_of_neighborhoods)
-        transformed_features = transformed_features.reshape(sequence_length, batch_size, num_half_edges,
-                                                            projected_dim).mean(dim=2)  # Global average pooling
+        transformed_features = transformed_features.view(sequence_length, batch_size, num_half_edges,
+                                                         projected_dim).mean(dim=2)  # Global average pooling
 
         print(f"transformed_features shape after transformer and mean: {transformed_features.shape}")
 
@@ -68,6 +69,7 @@ class HalfEdgeMeshTransformer(nn.Module):
         half_edge_neighborhoods = self.__prepare_half_edge_indices(half_edge_neighborhoods)
         half_edge_features = self.__prepare_half_edge_features(half_edge_features)
         features_of_neighborhoods = torch.index_select(half_edge_features, dim=0, index=half_edge_neighborhoods)
+        # Adjust the view operation
         features_of_neighborhoods = features_of_neighborhoods.view(num_batches, num_half_edges, nbh_size_plus_one, -1)
         features_of_neighborhoods = features_of_neighborhoods.permute(0, 2, 1, 3)
         return features_of_neighborhoods
