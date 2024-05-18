@@ -33,12 +33,20 @@ class HalfEdgeMeshTransformer(nn.Module):
                                                                         batch_half_edge_neighborhoods)
         features_of_neighborhoods = self.projection(features_of_neighborhoods)
 
-        features_of_neighborhoods = features_of_neighborhoods.permute(1, 0,
-                                                                      2)  # Transformer expects (sequence_length, batch_size, input_dim)
-        transformed_features = self.transformer_encoder(features_of_neighborhoods)
-        transformed_features = transformed_features.permute(1, 0, 2)  # Back to (batch_size, sequence_length, input_dim)
+        print(f"features_of_neighborhoods shape before permute: {features_of_neighborhoods.shape}")
 
-        transformed_features = transformed_features.mean(dim=1)  # Global average pooling
+        features_of_neighborhoods = features_of_neighborhoods.permute(2, 0, 1, 3)  # Adjust dimensions for Transformer
+        sequence_length, batch_size, num_half_edges, projected_dim = features_of_neighborhoods.shape
+        features_of_neighborhoods = features_of_neighborhoods.reshape(sequence_length * batch_size, num_half_edges,
+                                                                      projected_dim)
+
+        print(f"features_of_neighborhoods shape after permute and reshape: {features_of_neighborhoods.shape}")
+
+        transformed_features = self.transformer_encoder(features_of_neighborhoods)
+        transformed_features = transformed_features.reshape(sequence_length, batch_size, num_half_edges,
+                                                            projected_dim).mean(dim=2)  # Global average pooling
+
+        print(f"transformed_features shape after transformer and mean: {transformed_features.shape}")
 
         half_edge_features = self.fc(transformed_features)
 
