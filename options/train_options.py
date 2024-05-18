@@ -21,7 +21,9 @@ class TrainOptions(BaseOptions):
         self.parser.add_argument('--which_epoch', type=str, default='latest', help='Define whether to use the latest or the best model (for continue_train.')
 
         # transformer augments
+        self.parser.add_argument('--num_layers', type=int, help='the number of head in transformer model')
         self.parser.add_argument('--num_heads', type=int, help='the number of head in transformer model')
-        self.parser.add_argument('--num_layers', type=int, help='the number of layers in transformer model')
+        self.parser.add_argument('--dim_feedforward', type=int, help='the number of head in transformer model')
+        self.parser.add_argument('--dropout', type=int, help='the number of head in transformer model')
 
         self.is_train = True # Set to True if training functionality like autograd is necessary. Since we are training here, this is necessary.

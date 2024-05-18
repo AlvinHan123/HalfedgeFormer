@@ -1,11 +1,14 @@
 # Network architecture
---arch transformer
+--arch mconvnet
 --ncf 64 128 256 256
 --resblocks 1
 
 # Transformer
---num_heads 8
---num_layers 4
+opt.num_layers = 6
+opt.num_heads = 9
+opt.dim_feedforward = 512
+opt.dropout = 0.1
+
 
 # Batch size
 --batch_size 16

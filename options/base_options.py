@@ -10,11 +10,10 @@ class BaseOptions:
         self.initialized = False
 
     def initialize(self):
-        self.parser.add_argument('--arch', type=str, choices={"mconvnet", "meshunet", "transformer"}, help='Selects network architecture to use.')
+        self.parser.add_argument('--arch', default="mconvnet", type=str, choices={"mconvnet", "meshunet", "transformer"}, help='Selects network architecture to use.')
         self.parser.add_argument('--batch_size', type=int, help='Input batch size for training.')
         self.parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints', help='Models are saved here.')
 
-        # fixme
         self.parser.add_argument('--dataroot', type=str, required=True, help='Path to meshes (should have subfolders train, test and (if validation used) val).')
         self.parser.add_argument('--dataset_mode', required=True, type=str, choices={"classification", "segmentation"}, help='Choose if segmentation or classification should be performed.')
         self.parser.add_argument('--export_folder', type=str, default='', help='If set, export intermediate collapses to this folder.')
