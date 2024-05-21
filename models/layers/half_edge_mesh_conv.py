@@ -18,7 +18,7 @@ class HalfEdgeMeshConv(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_width=5, bias=True):
         super(HalfEdgeMeshConv, self).__init__()
         self.conv = nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=(1, kernel_width), bias=bias)
-
+        # TODO please replace self.conv = nn.Conv2d with transformer module
 
     def __call__(self, half_edge_features, meshes):
         return self.forward(half_edge_features, meshes)
@@ -168,3 +168,4 @@ class HalfEdgeMeshConv(nn.Module):
         half_edge_features = half_edge_features.view(num_batches * num_half_edges_new, num_channels)
 
         return half_edge_features
+

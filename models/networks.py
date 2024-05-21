@@ -6,7 +6,7 @@ import functools
 from torch.optim import lr_scheduler
 from models.layers import half_edge_mesh_conv
 from models.layers import half_edge_mesh_pool
-from models.layers.half_edge_mesh_transformer import HalfEdgeMeshTransformer
+from models.layers.half_edge_mesh_transformer import HalfEdgeMeshConv
 import torch.nn.functional as F
 from torch.nn import TransformerEncoder, TransformerEncoderLayer
 from models.layers.mesh_unpool import MeshUnpool
@@ -106,26 +106,20 @@ def init_net(net, init_type, init_gain, gpu_ids):
 def define_classifier(input_nc, ncf, number_input_half_edges, nclasses, opt, gpu_ids, arch, init_type, init_gain):
     net = None
     norm_layer = get_norm_layer(norm_type=opt.norm, num_groups=opt.num_groups)
-    print(arch)
-    print("norm_layer: ", norm_layer)
-    print("input_nc: ", input_nc)
-    print("ncf: ", ncf)
 
-    # if arch == 'mconvnet':
-    # net = MeshConvNet(norm_layer, input_nc, ncf, nclasses, number_input_half_edges, opt.pool_res, opt.fc_n, opt.nbh_size,
-    #                   opt.resblocks)
-    # elif arch == 'meshunet':
-    #     down_convs = [input_nc] + ncf
-    #     up_convs = ncf[::-1] + [nclasses]
-    #     pool_res = [number_input_half_edges] + opt.pool_res
-    #     net = MeshEncoderDecoder(pool_res, down_convs, up_convs, opt.nbh_size, blocks=opt.resblocks,
-    #                              transfer_data=True)
-    # elif arch == "transformer":
-    net = MeshFormerNet(norm_layer, input_nc, ncf, nclasses, number_input_half_edges, opt.pool_res, opt.fc_n, opt.nbh_size,
-                       opt.resblocks)
-    # else:
-    #     raise NotImplementedError('Encoder model name [%s] is not recognized' % arch)
+    if arch == 'mconvnet':
+        net = MeshConvNet(norm_layer, input_nc, ncf, nclasses, number_input_half_edges, opt.pool_res, opt.fc_n, opt.nbh_size, opt.resblocks)
+    elif arch == 'meshunet':
+        down_convs = [input_nc] + ncf
+        up_convs = ncf[::-1] + [nclasses]
+        pool_res = [number_input_half_edges] + opt.pool_res
+        net = MeshEncoderDecoder(pool_res, down_convs, up_convs, opt.nbh_size, blocks=opt.resblocks, transfer_data=True)
+    elif arch == "transformer":
+        net = MeshFormerNet(norm_layer, input_nc, ncf, nclasses, number_input_half_edges, opt.pool_res, opt.fc_n, opt.nbh_size, opt.resblocks)
+    else:
+        raise NotImplementedError('Encoder model name [%s] is not recognized' % arch)
     return init_net(net, init_type, init_gain, gpu_ids)
+
 
 
 def define_loss(opt):
@@ -141,67 +135,40 @@ def define_loss(opt):
 # Classes For Classification/ Classification (Transformer) / Segmentation Networks
 ##############################################################################
 
-# class Transformer(nn.Module):
-#     """ A Transformer for learning a global shape descriptor (classification) """
-#
-#     def __init__(self, input_dim, num_classes, num_layers=6, num_heads=8, dim_feedforward=512, dropout=0.1):
-#         super(Transformer, self).__init__()
-#         self.input_dim = input_dim
-#         self.model_type = 'Transformer'
-#         self.num_classes = num_classes
-#         self.projected_dim = num_heads * (
-#                     (input_dim + num_heads - 1) // num_heads)  # Smallest multiple of num_heads >= input_dim
-#         print(f"projected_dim: {self.projected_dim}")
-#
-#         # Linear projection layer to ensure input_dim is divisible by num_heads
-#         self.projection = nn.Linear(input_dim, self.projected_dim)
-#
-#         # Encoder layer and Transformer Encoder
-#         self.encoder_layer = TransformerEncoderLayer(d_model=self.projected_dim, nhead=num_heads,
-#                                                      dim_feedforward=dim_feedforward, dropout=dropout)
-#         self.transformer_encoder = TransformerEncoder(self.encoder_layer, num_layers=num_layers)
-#
-#         # Linear layers for classification
-#         self.fc1 = nn.Linear(self.projected_dim, dim_feedforward)
-#         self.fc2 = nn.Linear(dim_feedforward, num_classes)
-#
-#     def forward(self, src, src_mask=None):
-#         # Assuming src shape is (batch_size, sequence_length, input_dim)
-#         src = self.projection(src)  # Project src to the required dimension
-#         src = src.permute(1, 0, 2)  # Transformer expects (sequence_length, batch_size, input_dim)
-#         output = self.transformer_encoder(src, src_key_padding_mask=src_mask)
-#         output = output.mean(dim=0)  # Global average pooling
-#         output = F.relu(self.fc1(output))
-#         output = self.fc2(output)
-#         return output
 
 class MeshFormerNet(nn.Module):
     def __init__(self, norm_layer, nf0, conv_res, nclasses, input_res, pool_res, fc_n, nbh_size, nresblocks=3):
         super(MeshFormerNet, self).__init__()
         self.k = [nf0] + conv_res
         self.res = [input_res] + pool_res
+
+        self.transformers = nn.ModuleList([
+            HalfEdgeMeshConv(self.k[i], self.k[i + 1], kernel_width=nbh_size + 1)
+            for i in range(len(self.k) - 1)
+        ])
+
         norm_args = get_norm_args(norm_layer, self.k[1:])
+        self.norm_layers = nn.ModuleList([
+            norm_layer(**norm_args[i]) for i in range(len(norm_args))
+        ])
 
-        for i, ki in enumerate(self.k[:-1]):
-            setattr(self, 'conv{}'.format(i), HalfEdgeMeshTransformer(ki, self.k[i + 1], nbh_size))  # Use Transformer instead of Conv
-            setattr(self, 'norm{}'.format(i), norm_layer(**norm_args[i]))
-            setattr(self, 'pool{}'.format(i), half_edge_mesh_pool.HalfEdgeMeshPool(self.res[i + 1]))
-
-        self.gp = torch.nn.AvgPool1d(self.res[-1])
+        self.pool_layers = nn.ModuleList([half_edge_mesh_pool.HalfEdgeMeshPool(self.res[i + 1]) for i in range(len(self.res) - 1)])
+        self.gp = nn.AvgPool1d(self.res[-1])
         self.fc1 = nn.Linear(self.k[-1], fc_n)
         self.fc2 = nn.Linear(fc_n, nclasses)
 
     def forward(self, x, mesh):
-        for i in range(len(self.k) - 1):
-            x = getattr(self, 'conv{}'.format(i))(x, mesh)
-            x = F.relu(getattr(self, 'norm{}'.format(i))(x))
-            x = getattr(self, 'pool{}'.format(i))(x, mesh)
+        for transformer, norm_layer, pool_layer in zip(self.transformers, self.norm_layers, self.pool_layers):
+            x = transformer(x, mesh)
+            x = F.relu(norm_layer(x))
+            x = pool_layer(x, mesh)
 
         x = self.gp(x)
         x = x.view(-1, self.k[-1])
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
         return x
+
 
 class MeshConvNet(nn.Module):
     """ Network for learning a global shape descriptor (classification)."""
