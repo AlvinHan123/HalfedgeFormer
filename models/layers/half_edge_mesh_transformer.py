@@ -1,59 +1,52 @@
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.backends
+# half_edge_mesh_conv.py
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn import Transformer
-
-
-class HalfEdgeMeshTransformer(nn.Module):
-    """ This class is used to build a columnar matrix and apply Transformer layers on it.
-    The features of the half-edges are converted into a fake image via the defined neighborhood.
-    """
-
-    def __init__(self, in_channels, out_channels, num_heads=1, num_layers=1, dim_feedforward=2048, dropout=0.1):
-        super(HalfEdgeMeshTransformer, self).__init__()
-        print(f"in_channels: {in_channels}, num_heads: {num_heads}")
-        self.transformer = nn.Transformer(
-            d_model=in_channels,
-            nhead=num_heads,
-            num_encoder_layers=num_layers,
-            num_decoder_layers=num_layers,
-            dim_feedforward=dim_feedforward,
-            dropout=dropout
-        )
-        self.fc_out = nn.Linear(in_channels, out_channels)
-
-    def forward(self, src, tgt):
-        transformer_output = self.transformer(src, tgt)
-        output = self.fc_out(transformer_output)
-        return output
+from .transformer import MeshTransformer # Import the transformer module
 
 class HalfEdgeMeshConv(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_width=5, num_heads=1, num_layers=1, dim_feedforward=2048, dropout=0.1, bias=True):
+    """ This class is used to build a columnar matrix. The features of the half-edges are converted into a fake image
+    via the defined neighborhood. The changes in this class compared to the original are in the removal of the
+    symmetrical functions. The rest of the class deals with the creation of the column matrix, which is then passed to
+    the convolution operations of pytorch.
+
+    half_edge_features: half edge features (Batch x Features x Half Edges)
+    meshes: list of half edge mesh data-structure (len(mesh) == Batch)
+    and applies convolution
+    """
+
+    def __init__(self, in_channels, out_channels, kernel_width=5, bias=True):
         super(HalfEdgeMeshConv, self).__init__()
-        self.transformer = HalfEdgeMeshTransformer(in_channels, out_channels, num_heads, num_layers, dim_feedforward, dropout)
-        # self.conv = nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=(1, kernel_width), bias=bias)
+        # Replace the convolutional layer with the transformer module
+        self.conv = MeshTransformer(in_channels, out_channels)
+
+    def __call__(self, half_edge_features, meshes):
+        return self.forward(half_edge_features, meshes)
 
     def forward(self, half_edge_features, meshes):
         half_edge_features = half_edge_features.squeeze(-1)
 
+        # Time of function to this point (Dell, GPU): 0,0 s (0%).
+
+        # get neighbor information for each mesh in batch
         number_of_half_edges_in_features = half_edge_features.shape[2]
         device = half_edge_features.device
         batch_half_edge_neighborhoods = torch.cat([self.get_prepared_half_edge_neighborhoods_from_mesh(i, number_of_half_edges_in_features, device) for i in meshes], 0)
 
+        # Time of function to this point ( Dell, GPU): 0,0009551048278808594 s (45%) => torch.cat loop takes 45 % of func time.
+
+        # Dimensions of batch_half_edge_neighborhoods are (num_batches, num_channels, num_half_edges, nbh_size_plus_one)
         features_of_neighborhoods = self.__gather_neighborhood_features(half_edge_features, batch_half_edge_neighborhoods)
 
-        # Prepare the input for the Transformer
-        src = features_of_neighborhoods.permute(2, 0, 1, 3).contiguous().view(features_of_neighborhoods.shape[2], -1, features_of_neighborhoods.shape[1])
-        tgt = src.clone()  # Assuming we use the same features as target for simplicity
+        # Time of function to this point (Dell, GPU): 0,0019474029541015625 s (92%) =>  create_GeMM_he takes 47 % of func time.
 
-        half_edge_features = self.transformer(src, tgt)
-        half_edge_features = half_edge_features.permute(1, 2, 0).view(features_of_neighborhoods.shape[0], -1, features_of_neighborhoods.shape[2], 1)
+        # Dimensions of half_edge_features after the convolution are (num_batches, num_channels, num_half_edges, 1).
+        # because the features of the nbh_size_plus_one half edges in the last dimension where convoluted into one value.
+        half_edge_features = self.conv(features_of_neighborhoods)
 
+        # Time of function to this point (Dell, GPU): 0,002115488052368164  s (100%)=>  conv takes 8 % of func time.
+        print(f"BEFORE!!! half_edge_features output shape: {half_edge_features.shape}")
         return half_edge_features
 
 
@@ -175,4 +168,5 @@ class HalfEdgeMeshConv(nn.Module):
         half_edge_features = half_edge_features.view(num_batches * num_half_edges_new, num_channels)
 
         return half_edge_features
+
 

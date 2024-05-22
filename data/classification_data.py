@@ -42,7 +42,7 @@ class ClassificationData(BaseDataset):
         # print(dir)
         # print("!!!")
         # exit()
-        dir = r"E:\HalfedgeCNN-code-v1\datasets\shrec_16"
+        dir = r"/4T/pengxiao_space/HalfedgeFormer/HalfedgeFormer/datasets/shrec_16"
         classes = [d for d in os.listdir(dir) if os.path.isdir(os.path.join(dir, d))]
         classes.sort()
         class_to_idx = {classes[i]: i for i in range(len(classes))}
@@ -54,7 +54,7 @@ class ClassificationData(BaseDataset):
         # dir = os.path.expanduser(dir)
         # print(dir)
         # exit()
-        dir = r"E:\HalfedgeCNN-code-v1\datasets\shrec_16"
+        dir = r"/4T/pengxiao_space/HalfedgeFormer/HalfedgeFormer/datasets/shrec_16"
         for target in sorted(os.listdir(dir)):
             d = os.path.join(dir, target)
             if not os.path.isdir(d):

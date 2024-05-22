@@ -64,7 +64,7 @@ def get_cuda_settings_string():
 
 def _read_settings(file):
     settings_dict = {}
-    with open('E:\HalfedgeCNN-code-v1\scripts/settings/' + file) as f:
+    with open('/4T/pengxiao_space/HalfedgeFormer/HalfedgeFormer/scripts/settings/' + file) as f:
         lines = f.readlines()
         for line in lines:
             if line.startswith('#') or not line.strip():

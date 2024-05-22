@@ -4,7 +4,7 @@
 --resblocks 1
 
 # Transformer
-opt.num_layers = 8
+opt.num_layers = 1
 opt.num_heads = 1
 opt.dim_feedforward = 512
 opt.dropout = 0.1

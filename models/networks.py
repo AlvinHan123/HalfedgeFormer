@@ -115,7 +115,8 @@ def define_classifier(input_nc, ncf, number_input_half_edges, nclasses, opt, gpu
         pool_res = [number_input_half_edges] + opt.pool_res
         net = MeshEncoderDecoder(pool_res, down_convs, up_convs, opt.nbh_size, blocks=opt.resblocks, transfer_data=True)
     elif arch == "transformer":
-        net = MeshFormerNet(norm_layer, input_nc, ncf, nclasses, number_input_half_edges, opt.pool_res, opt.fc_n, opt.nbh_size, opt.resblocks)
+        # TODO: call the mesh transoformer blcok here
+        net = MeshTransformerNet(norm_layer, input_nc, ncf, nclasses, number_input_half_edges, opt.pool_res, opt.fc_n, opt.nbh_size, opt.resblocks)
     else:
         raise NotImplementedError('Encoder model name [%s] is not recognized' % arch)
     return init_net(net, init_type, init_gain, gpu_ids)
@@ -136,35 +137,34 @@ def define_loss(opt):
 ##############################################################################
 
 
-class MeshFormerNet(nn.Module):
-    def __init__(self, norm_layer, nf0, conv_res, nclasses, input_res, pool_res, fc_n, nbh_size, nresblocks=3):
-        super(MeshFormerNet, self).__init__()
+class MeshTransformerNet(nn.Module):
+    """ Network for learning a global shape descriptor (classification) using transformer. """
+
+    def __init__(self, norm_layer, nf0, conv_res, nclasses, input_res, pool_res, fc_n, nbh_size,
+                 nresblocks=3):
+        super(MeshTransformerNet, self).__init__()
         self.k = [nf0] + conv_res
         self.res = [input_res] + pool_res
-
-        self.transformers = nn.ModuleList([
-            HalfEdgeMeshConv(self.k[i], self.k[i + 1], kernel_width=nbh_size + 1)
-            for i in range(len(self.k) - 1)
-        ])
-
         norm_args = get_norm_args(norm_layer, self.k[1:])
-        self.norm_layers = nn.ModuleList([
-            norm_layer(**norm_args[i]) for i in range(len(norm_args))
-        ])
 
-        self.pool_layers = nn.ModuleList([half_edge_mesh_pool.HalfEdgeMeshPool(self.res[i + 1]) for i in range(len(self.res) - 1)])
-        self.gp = nn.AvgPool1d(self.res[-1])
+        for i, ki in enumerate(self.k[:-1]):
+            setattr(self, 'conv{}'.format(i), HalfEdgeMeshConv(ki, self.k[i + 1]))  # Use transformer here
+            setattr(self, 'norm{}'.format(i), norm_layer(**norm_args[i]))
+            setattr(self, 'pool{}'.format(i), half_edge_mesh_pool.HalfEdgeMeshPool(self.res[i + 1]))
+
+        self.gp = torch.nn.AvgPool1d(self.res[-1])
         self.fc1 = nn.Linear(self.k[-1], fc_n)
         self.fc2 = nn.Linear(fc_n, nclasses)
 
     def forward(self, x, mesh):
-        for transformer, norm_layer, pool_layer in zip(self.transformers, self.norm_layers, self.pool_layers):
-            x = transformer(x, mesh)
-            x = F.relu(norm_layer(x))
-            x = pool_layer(x, mesh)
+        for i in range(len(self.k) - 1):
+            x = getattr(self, 'conv{}'.format(i))(x, mesh)
+            x = F.relu(getattr(self, 'norm{}'.format(i))(x))
+            x = getattr(self, 'pool{}'.format(i))(x, mesh)
 
         x = self.gp(x)
         x = x.view(-1, self.k[-1])
+
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
         return x
