@@ -5,10 +5,15 @@ import torch.nn.functional as F
 from torch.nn import TransformerEncoder, TransformerEncoderLayer
 
 class MeshTransformer(nn.Module):
-    def __init__(self, in_channels, out_channels, num_layers=6, nhead=1, dim_feedforward=2048, dropout=0.1):
+    def __init__(self, in_channels, out_channels, num_layers=2, nhead=1, dim_feedforward=2048, dropout=0.1):
         super(MeshTransformer, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
+
+        if in_channels == 3:
+            nhead = 1
+        else:
+            nhead = 8
 
         self.encoder_layer = TransformerEncoderLayer(d_model=in_channels, nhead=nhead, dim_feedforward=dim_feedforward, dropout=dropout)
         self.transformer_encoder = TransformerEncoder(self.encoder_layer, num_layers=num_layers)

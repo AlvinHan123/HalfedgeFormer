@@ -1,4 +1,5 @@
 # Network architecture
+# --arch mconvnet
 --arch transformer
 --ncf 64 128 256 256
 --resblocks 1

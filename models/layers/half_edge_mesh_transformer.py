@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from .transformer import MeshTransformer # Import the transformer module
 
-class HalfEdgeMeshConv(nn.Module):
+class HalfEdgeMeshFormer(nn.Module):
     """ This class is used to build a columnar matrix. The features of the half-edges are converted into a fake image
     via the defined neighborhood. The changes in this class compared to the original are in the removal of the
     symmetrical functions. The rest of the class deals with the creation of the column matrix, which is then passed to
@@ -17,7 +17,7 @@ class HalfEdgeMeshConv(nn.Module):
     """
 
     def __init__(self, in_channels, out_channels, kernel_width=5, bias=True):
-        super(HalfEdgeMeshConv, self).__init__()
+        super(HalfEdgeMeshFormer, self).__init__()
         # Replace the convolutional layer with the transformer module
         self.conv = MeshTransformer(in_channels, out_channels)
 
@@ -46,7 +46,7 @@ class HalfEdgeMeshConv(nn.Module):
         half_edge_features = self.conv(features_of_neighborhoods)
 
         # Time of function to this point (Dell, GPU): 0,002115488052368164  s (100%)=>  conv takes 8 % of func time.
-        print(f"BEFORE!!! half_edge_features output shape: {half_edge_features.shape}")
+        # print(f"BEFORE!!! half_edge_features output shape: {half_edge_features.shape}")
         return half_edge_features
 
 

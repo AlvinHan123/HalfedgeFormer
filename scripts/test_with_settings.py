@@ -4,8 +4,10 @@ from settings.settings import print_cuda_information, get_clas_or_seg_settings_d
     get_dataset_settings_dict, get_test_settings_dict, get_general_settings_dict
 
 
-def test(dataset_name, best_model=False, export_folder=None):
+def test(dataset_name="shrec_16", best_model=False, export_folder=None):
     print_cuda_information()
+
+    dataset_name = "shrec_16"
 
     dataset_dict           = get_dataset_settings_dict(dataset_name)
     clas_or_seg_settings_dict  = get_clas_or_seg_settings_dict(dataset_dict)
