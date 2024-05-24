@@ -1,6 +1,6 @@
 # HalfEdgeTransformer for Mesh Segmentation
 
-Version 1.0
+Version 2.0
 
 Note: This code is based on a modification of the code from .
 
