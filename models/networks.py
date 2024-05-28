@@ -182,6 +182,7 @@ class MeshConvNet(nn.Module):
         norm_args = get_norm_args(norm_layer, self.k[1:])
 
         for i, ki in enumerate(self.k[:-1]):
+            # print("ki and self.k[i+1]", ki, self.k[i + 1])
             setattr(self, 'conv{}'.format(i), MResConv(ki, self.k[i + 1], nbh_size, nresblocks))
             setattr(self, 'norm{}'.format(i), norm_layer(**norm_args[i]))
             setattr(self, 'pool{}'.format(i), half_edge_mesh_pool.HalfEdgeMeshPool(self.res[i + 1]))
