@@ -19,9 +19,9 @@ def train_one_epoch():
     return training_time
 
 
-def test():
+def test(epoch):
     start_time = time.time()
-    accuracy = run_test()
+    accuracy = run_test(epoch=epoch)
     return accuracy, time.time() - start_time
 
 
@@ -32,7 +32,7 @@ def validate():
 
 
 def init_writer():
-    logging_header = ("Epoch",  "Test Accuracy", "Training Time", "Test Time", "Total Time", "              Learn Rate", "Model saved")
+    logging_header = ("Epoch",  "Test Accuracy", "Training Time", "Test Time", "Total Time", "Learn Rate", "Model saved")
     writer = Writer(opt, logging_header)
     return writer
 
@@ -64,9 +64,7 @@ if __name__ == '__main__':
         model.save_network('latest')
 
         if epoch % opt.run_test_freq == 0:
-            test_accuracy, test_time = test()
-
-            # test_accuracy = 1-test_accuracy
+            test_accuracy, test_time = test(epoch)
 
             best_model_saved = False
             if test_accuracy > best_accuracy:

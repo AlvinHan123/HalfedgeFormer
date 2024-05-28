@@ -40,7 +40,7 @@ class BaseDataset(data.Dataset):
             std = std / (i + 1)
             transform_dict = {'mean': mean[:, np.newaxis], 'std': std[:, np.newaxis],
                               'ninput_channels': len(mean)}
-            mean_std_cache = r"E:\HalfedgeCNN-code-v1\datasets\shrec_16\mean_std_cache.p"
+            # mean_std_cache = r"E:\HalfedgeCNN-code-v1\datasets\shrec_16\mean_std_cache.p"
             with open(mean_std_cache, 'wb') as f:
                 pickle.dump(transform_dict, f)
             print('saved: ', mean_std_cache)

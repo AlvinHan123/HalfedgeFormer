@@ -27,7 +27,9 @@ class Writer:
             logdir = self.display._get_file_writer().get_logdir()
             file = logdir + '/run.log'
             self.logfile = file
-            logging.basicConfig(filename=file, encoding='utf-8',level=logging.INFO)
+            # logging.basicConfig(filename=file, encoding='utf-8',level=logging.INFO)
+            logging.basicConfig(filename=file,level=logging.INFO)
+
         else:
             self.display = None
 
