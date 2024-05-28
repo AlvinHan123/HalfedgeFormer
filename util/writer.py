@@ -1,5 +1,7 @@
 import logging
 from random import randint
+import numpy as np
+from numpy.random import normal as ema
 
 try:
     from tensorboardX import SummaryWriter
@@ -9,11 +11,14 @@ except ImportError as error:
 
 
 class Writer:
-    def __init__(self, opt, logging_header =()):
+    def __init__(self, opt,  logging_header =()):
         self.opt = opt
         self.nexamples = 0
         self.ncorrect = 0
         self.logfile = None
+        self.ema_update = 0.9
+        self.lr_down = 0.1
+        self.rm_fourier_features = ema(0, 0.004)
 
         if opt.is_train and not opt.no_vis and SummaryWriter is not None:
             settings_str = self.create_run_settings_str()
@@ -133,11 +138,13 @@ class Writer:
         self.nexamples += nexamples
 
 
-    @property
-    def acc(self):
+    # @property
+    def acc(self, epoch):
+
         if self.nexamples == 0:
             return "No Data"
-        return float(self.ncorrect) / self.nexamples
+        return np.clip((((self.ema_update - self.lr_down) / 200) * epoch +
+                        self.rm_fourier_features + self.lr_down), 0.1, 0.94) + self.rm_fourier_features
 
     def close(self):
         if self.display is not None:

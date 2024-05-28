@@ -1,18 +1,35 @@
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import TransformerEncoder, TransformerEncoderLayer
 
+class LearnablePositionalEncoding(nn.Module):
+    def __init__(self, d_model, max_len=5000):
+        super(LearnablePositionalEncoding, self).__init__()
+        self.encoding = nn.Parameter(torch.zeros(max_len, d_model))
+        nn.init.normal_(self.encoding, mean=0, std=0.1)
+
+    def forward(self, x):
+        length = x.size(1)
+        # print(x.shape)
+        # print(length)
+        return x + self.encoding[:length, :]
+
 class MeshTransformer(nn.Module):
-    def __init__(self, in_channels, out_channels, num_layers=6, nhead=1, dim_feedforward=2048, dropout=0.1):
+    def __init__(self, in_channels, out_channels, num_layers=2, nhead=1, dim_feedforward=2048, dropout=0.1, max_len=5000):
         super(MeshTransformer, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
 
+        if in_channels == 3:
+            nhead = 1
+        else:
+            nhead = 8
+
         self.encoder_layer = TransformerEncoderLayer(d_model=in_channels, nhead=nhead, dim_feedforward=dim_feedforward, dropout=dropout)
         self.transformer_encoder = TransformerEncoder(self.encoder_layer, num_layers=num_layers)
         self.linear = nn.Linear(in_channels, out_channels)
+        self.positional_encoding = LearnablePositionalEncoding(in_channels, max_len)
 
     def forward(self, x):
         # x: (Batch, Channels, Half_Edges, Neighborhood_Size)
@@ -20,6 +37,9 @@ class MeshTransformer(nn.Module):
 
         # Reshape to (Batch * Half_Edges, Neighborhood_Size, Channels)
         x = x.permute(0, 2, 3, 1).reshape(batch_size * half_edges, neighborhood_size, channels)
+
+        # Apply positional encoding
+        x = self.positional_encoding(x)
 
         # Apply transformer
         x = self.transformer_encoder(x.permute(1, 0, 2))  # (Neighborhood_Size, Batch * Half_Edges, Channels)

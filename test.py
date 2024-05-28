@@ -1,12 +1,12 @@
 import os
-
+import numpy as np
 from options.test_options import TestOptions
 from data import DataLoader
 from models import create_model
 from util.writer import Writer
 
 
-def run_test_or_val(phase):
+def run_test_or_val(phase, epoch):
     opt = TestOptions().parse()
     opt.serial_batches = True
     opt.phase = phase
@@ -41,12 +41,12 @@ def run_test_or_val(phase):
         model.set_input(data)
         ncorrect, nexamples = model.test()
         writer.update_counter(ncorrect, nexamples)
-    return writer.acc
+    return writer.acc(epoch)
 
 
 # Test with test data.
-def run_test():
-    accuracy = run_test_or_val('test')
+def run_test(epoch):
+    accuracy = run_test_or_val('test', epoch)
     return accuracy
 
 

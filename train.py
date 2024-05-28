@@ -32,14 +32,14 @@ def validate():
 
 
 def init_writer():
-    logging_header = ("Epoch", "Training Loss", "Test Accuracy", "Training Time", "Test Time", "Total Time", "              Learn Rate", "Model saved")
+    logging_header = ("Epoch",  "Test Accuracy", "Training Time", "Test Time", "Total Time", "              Learn Rate", "Model saved")
     writer = Writer(opt, logging_header)
     return writer
 
 
 def log_epoch_data():
     learn_rate = model.optimizer.param_groups[0]['lr']
-    data = (epoch, model.loss.item(), test_accuracy, training_time, test_time, total_time, learn_rate, best_model_saved)
+    data = (epoch, test_accuracy, training_time, test_time, total_time, learn_rate, best_model_saved)
     writer.log_epoch_data(data)
 
 
@@ -65,6 +65,8 @@ if __name__ == '__main__':
 
         if epoch % opt.run_test_freq == 0:
             test_accuracy, test_time = test()
+
+            # test_accuracy = 1-test_accuracy
 
             best_model_saved = False
             if test_accuracy > best_accuracy:

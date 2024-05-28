@@ -6,7 +6,7 @@ import functools
 from torch.optim import lr_scheduler
 from models.layers import half_edge_mesh_conv
 from models.layers import half_edge_mesh_pool
-from models.layers.half_edge_mesh_transformer import HalfEdgeMeshConv
+from models.layers.half_edge_mesh_transformer import HalfEdgeMeshFormer
 import torch.nn.functional as F
 from torch.nn import TransformerEncoder, TransformerEncoderLayer
 from models.layers.mesh_unpool import MeshUnpool
@@ -148,7 +148,8 @@ class MeshTransformerNet(nn.Module):
         norm_args = get_norm_args(norm_layer, self.k[1:])
 
         for i, ki in enumerate(self.k[:-1]):
-            setattr(self, 'conv{}'.format(i), HalfEdgeMeshConv(ki, self.k[i + 1]))  # Use transformer here
+            # print("ki and self.k[i+1]", ki, self.k[i+1])
+            setattr(self, 'conv{}'.format(i), HalfEdgeMeshFormer(ki, self.k[i + 1]))  # Use transformer here
             setattr(self, 'norm{}'.format(i), norm_layer(**norm_args[i]))
             setattr(self, 'pool{}'.format(i), half_edge_mesh_pool.HalfEdgeMeshPool(self.res[i + 1]))
 
@@ -181,6 +182,7 @@ class MeshConvNet(nn.Module):
         norm_args = get_norm_args(norm_layer, self.k[1:])
 
         for i, ki in enumerate(self.k[:-1]):
+            # print("ki and self.k[i+1]", ki, self.k[i + 1])
             setattr(self, 'conv{}'.format(i), MResConv(ki, self.k[i + 1], nbh_size, nresblocks))
             setattr(self, 'norm{}'.format(i), norm_layer(**norm_args[i]))
             setattr(self, 'pool{}'.format(i), half_edge_mesh_pool.HalfEdgeMeshPool(self.res[i + 1]))

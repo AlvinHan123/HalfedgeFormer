@@ -70,13 +70,13 @@ class ClassifierModel:
             self.soft_label = torch.from_numpy(data['soft_label']) # soft labels have segmentation base selected in segmentatio_base
 
     def forward(self):
-        print("the input of net")
-        print(self.half_edge_features.shape)
-        print("------------")
-        print(self.meshes)
+        # print("the input of net")
+        # print(self.half_edge_features.shape)
+        # print("------------")
+        # print(self.meshes)
 
         out = self.net(self.half_edge_features, self.meshes)
-        pdb.set_trace()
+        # pdb.set_trace()
         if self.opt.dataset_mode == 'segmentation':
             out = self.output_interface_layer.transform_predictions_to_match_segmentation_base(out, self.meshes)
         return out

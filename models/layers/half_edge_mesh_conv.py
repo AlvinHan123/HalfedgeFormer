@@ -47,7 +47,7 @@ class HalfEdgeMeshConv(nn.Module):
         half_edge_features = self.conv(features_of_neighborhoods)
 
         # Time of function to this point (Dell, GPU): 0,002115488052368164  s (100%)=>  conv takes 8 % of func time.
-        print(f"BEFORE!!! half_edge_features output shape: {half_edge_features.shape}")
+        # print(f"BEFORE!!! half_edge_features output shape: {half_edge_features.shape}")
         return half_edge_features
 
 

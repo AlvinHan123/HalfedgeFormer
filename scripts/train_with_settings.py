@@ -29,6 +29,7 @@ if __name__ == '__main__':
         raise Exception("No number of runs (--number_of_runs) specified in settings file.")
     number_of_runs = int(combined_settings["--number_of_runs"])
 
+
     for i in range(number_of_runs):
         delete_cache(dataset_name)
         os.system(command)
