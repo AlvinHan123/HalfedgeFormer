@@ -8,7 +8,7 @@ The Pytorch implementation for our paper: **HalfEdgeFormer: A High-efficient net
   <img width="750" src="https://github.com/AlvinHan123/HalfedgeFormer/blob/main/framework.png"> 
 </p>
 
-Overview of the proposed framework, HalfEdgeFormer. The figure describes the training of the framework: 
+Overview of the proposed framework, HalfEdgeFormer. The process begins with "Mesh Simplification," where complex 3D models are reduced to simplified geometric representations using methods like QEM (Quadric Error Metric). These simplified meshes are then processed in the "Graph Transformer" component of the framework. Here, positional embeddings derived from the Laplacian linear projections of vertex and edge features form the input to a series of graph transformer layers. These layers utilize multi-head attention mechanisms, normalization, and MLP (Multi-Layer Perceptron) blocks to process the graph data iteratively. The graph transformer outputs feature vectors which are then classified using an MLP head into various categories leverages modern neural network techniques tailored for graph data, aiming to efficiently classify 3D shapes by learning from their geometric and topological features.
 
 ## Getting Started
 
@@ -71,3 +71,7 @@ Table: The best numbers are in **bold**.
 
 Code references: \
 [HalfedgeCNN](https://graphics.cs.uos.de/)
+
+
+### Appendix
+In the processing of the SHREC11 dataset, edge contraction using Quadric Error Metrics (QEM) is omitted due to the dataset's inherently small size. For larger, more complex mesh structures, preprocessing steps from Homework 3 should be applied to manage and reduce mesh complexity effectively.
