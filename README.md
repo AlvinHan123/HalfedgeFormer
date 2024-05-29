@@ -69,9 +69,11 @@ To begin training for SHREC classification, follow these steps:
 
 Table: The best numbers are in **bold**.
 
-Code references: \
-[HalfedgeCNN](https://graphics.cs.uos.de/)
 
 
 ### Appendix
 In the processing of the SHREC11 dataset, edge contraction using Quadric Error Metrics (QEM) is omitted due to the dataset's inherently small size. For larger, more complex mesh structures, preprocessing steps from Homework 3 should be applied to manage and reduce mesh complexity effectively.
+
+#### Code references: \
+[HalfedgeCNN](https://graphics.cs.uos.de/)
+
