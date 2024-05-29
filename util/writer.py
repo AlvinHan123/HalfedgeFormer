@@ -140,7 +140,6 @@ class Writer:
         self.nexamples += nexamples
 
 
-    # @property
     def acc(self, epoch):
 
         if self.nexamples == 0:
