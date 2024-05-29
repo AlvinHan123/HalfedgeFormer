@@ -5,7 +5,7 @@ The Pytorch implementation for our paper: **HalfEdgeFormer: A High-efficient Hal
 ## Framework
 
 <p align="center">
-  <img width="750" src="[https://github.com/AlvinHan123/LDMLR/blob/main/assets/framework.png](https://github.com/AlvinHan123/HalfedgeFormer/blob/main/framework.png)"> 
+  <img width="750" src="https://github.com/AlvinHan123/HalfedgeFormer/blob/main/framework.png"> 
 </p>
 
 Overview of the proposed framework, HalfEdgeFormer. The figure describes the training of the framework: 
