@@ -11,8 +11,6 @@ class LearnablePositionalEncoding(nn.Module):
 
     def forward(self, x):
         length = x.size(1)
-        # print(x.shape)
-        # print(length)
         return x + self.encoding[:length, :]
 
 class MeshTransformer(nn.Module):
