@@ -55,3 +55,19 @@ To begin training for SHREC classification, follow these steps:
     tensorboard --logdir runs
     ```
 
+## Results
+| Method                           | Split 16  |
+|----------------------------------|-----------|
+| MeshCNN [Hanocka et al., 2019]   | 98.6%     |
+| HalfedgeCNN [Ludwig et al., 2023]| 99.5%     |
+| PD-MeshNet [Milano et al., 2020] | 99.7%     |
+| MeshWalker [Lahav et al., 2020]  | 98.6%     |
+| HodgeNet [Smirnov et al., 2021]  | 99.2%     |
+| DiffusionNet [Sharp et al., 2022]| 99.7%     |
+| SubdivNet [Hu et al., 2022]      | **100%**  |
+| **HalfedgeFormer (Ours)**        | 98.4%     |
+
+Table: The best numbers are in **bold**.
+
+Code references: \
+[HalfedgeCNN](https://graphics.cs.uos.de/)
