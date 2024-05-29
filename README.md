@@ -1,6 +1,6 @@
 # HalfedgeCNN
 
-The Pytorch implementation for our paper: **HalfEdgeFormer: A High-efficient Half-edge Structure with Transformer**
+The Pytorch implementation for our paper: **HalfEdgeFormer: A High-efficient network for Half-edge Structure with Transformer**
 
 ## Framework
 
