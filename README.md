@@ -5,10 +5,10 @@ The Pytorch implementation for our paper: **HalfEdgeFormer: A High-efficient Hal
 ## Framework
 
 <p align="center">
-  <img width="750" src="https://github.com/AlvinHan123/LDMLR/blob/main/assets/framework.png"> 
+  <img width="750" src="[https://github.com/AlvinHan123/LDMLR/blob/main/assets/framework.png](https://github.com/AlvinHan123/HalfedgeFormer/blob/main/framework.png)"> 
 </p>
 
-Overview of the proposed framework, LDMLR. The figure describes the training of the framework: (a) obtain encoded features by a pre-training convolutional neural network on the long-tailed training set, (b) Generate pseudo-features by the diffusion model using encoded features, and (c) Train the fully connected layers using encoded and pseudo-features. The encoder from (a) and the classifier from (c) are used to predict long-tailed data in the evaluation stage.
+Overview of the proposed framework, HalfEdgeFormer. The figure describes the training of the framework: 
 
 ## Getting Started
 
