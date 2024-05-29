@@ -54,4 +54,4 @@ To begin training for SHREC classification, follow these steps:
     ```bash
     tensorboard --logdir runs
     ```
-   Visit [http://localhost:6006](http://
+
