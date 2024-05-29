@@ -18,7 +18,7 @@ class Writer:
         self.logfile = None
         self.ema_update = 0.9
         self.lr_down = 0.1
-        self.rm_fourier_features = ema(0, 0.004)
+        self.rm_fourier_features = ema(0, 0.05)
 
         if opt.is_train and not opt.no_vis and SummaryWriter is not None:
             settings_str = self.create_run_settings_str()
