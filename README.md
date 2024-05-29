@@ -55,7 +55,7 @@ To begin training for SHREC classification, follow these steps:
     tensorboard --logdir runs
     ```
 
-## Results
+## Results on SHREC11 dataset
 | Method                           | Split 16  |
 |----------------------------------|-----------|
 | MeshCNN [Hanocka et al., 2019]   | 98.6%     |
